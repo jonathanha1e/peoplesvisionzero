@@ -2,58 +2,181 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Make a Flyer</title>
+  <title>Make a Flyer — People's Vision Zero</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 500px; margin: 60px auto; padding: 0 20px; }
+    body { font-family: Arial, sans-serif; max-width: 520px; margin: 60px auto; padding: 0 20px; }
     h1 { font-size: 24px; margin-bottom: 8px; }
-    p { color: #555; margin-bottom: 30px; }
-    label { display: block; font-weight: bold; margin-bottom: 6px; }
-    input { width: 100%; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; margin-bottom: 20px; }
-    button { background: #f5c800; font-size: 18px; font-weight: bold; border: none; padding: 14px 30px; border-radius: 8px; cursor: pointer; width: 100%; }
-    button:hover { background: #e0b500; }
+    p.sub { color: #555; margin-bottom: 30px; }
+    label { display: block; font-weight: bold; margin-bottom: 6px; margin-top: 18px; }
+    input[type="date"], input[type="time"], input[type="text"] {
+      width: 100%; padding: 10px; font-size: 16px; border: 1px solid #ccc;
+      border-radius: 6px; box-sizing: border-box;
+    }
+    .row { display: flex; gap: 12px; }
+    .row > div { flex: 1; }
+    .buttons { display: flex; flex-direction: column; gap: 10px; margin-top: 28px; }
+    button {
+      font-size: 16px; font-weight: bold; border: none; padding: 14px;
+      border-radius: 8px; cursor: pointer; width: 100%;
+    }
+    .btn-en  { background: #f5c800; }
+    .btn-es  { background: #c8102e; color: white; }
+    .btn-zh  { background: #de2910; color: white; }
+    button:hover { opacity: 0.88; }
   </style>
 </head>
 <body>
   <h1>People's Vision Zero</h1>
-  <p>Fill in the details for your next event and click the button to download the flyer.</p>
+  <p class="sub">Fill in the event details, then download the flyer in any language.</p>
 
   <label>Date</label>
-  <input id="date" type="text" placeholder="e.g. Saturday, July 12">
+  <input type="date" id="date">
 
-  <label>Time</label>
-  <input id="time" type="text" placeholder="e.g. 10:00 AM">
+  <label>Start Time</label>
+  <input type="time" id="start_time">
 
-  <label>Location</label>
-  <input id="location" type="text" placeholder="e.g. 5th Ave & Main St">
+  <label>End Time</label>
+  <input type="time" id="end_time">
 
-  <label>Estimated Duration</label>
-  <input id="duration" type="text" placeholder="e.g. 2 hours">
+  <label>Cross Streets</label>
+  <div class="row">
+    <div><input type="text" id="street1" placeholder="Cross street 1"></div>
+    <div><input type="text" id="street2" placeholder="Cross street 2"></div>
+  </div>
 
-  <button onclick="generate()">Download Flyer</button>
+  <div class="buttons">
+    <button class="btn-en" onclick="generate('en')">⬇ Download Flyer — English</button>
+    <button class="btn-es" onclick="generate('es')">⬇ Descargar volante — Español</button>
+    <button class="btn-zh" onclick="generate('zh')">⬇ 下载传单 — 中文</button>
+  </div>
 
   <script>
-    async function generate() {
-      const date     = document.getElementById('date').value;
-      const time     = document.getElementById('time').value;
-      const location = document.getElementById('location').value;
-      const duration = document.getElementById('duration').value;
+    const translations = {
+      en: {
+        topBar:    "Neighborhood Notice &nbsp;&middot;&nbsp; Please read",
+        headline:  "TEMPORARY<br>ROAD CLOSURE",
+        subhead:   "Crosswalk painting for safer streets",
+        labelDate: "Date",
+        labelTime: "Time",
+        labelLoc:  "Location",
+        body:      (loc, date, time) => `We will be painting crosswalks like those pictured above at the corner of ${loc} on ${date} at ${time}. Our goal is to protest for safer streets and a more effective government. Join us in community to demand a city that works!`,
+        whatHeader: "What to expect",
+        bullets: [
+          "Short-term lane closures or detours around the intersection",
+          "Volunteers in hi-vis vests directing foot and vehicle traffic",
+          "Wet paint — please do not drive or walk over the crosswalk until dry",
+        ],
+        durationLabel: "Estimated work duration:",
+        disclaimer: "Not affiliated with LADOT or Bureau of Street Services (StreetsLA)",
+        organizedBy: "Organized by",
+        orgName: "People’s Vision Zero",
+      },
+      es: {
+        topBar:    "Aviso vecinal &nbsp;&middot;&nbsp; Por favor lea",
+        headline:  "CIERRE<br>TEMPORAL DE CALLE",
+        subhead:   "Pintura de pasos peatonales para calles más seguras",
+        labelDate: "Fecha",
+        labelTime: "Hora",
+        labelLoc:  "Ubicación",
+        body:      (loc, date, time) => `Pintaremos pasos peatonales como los de la foto en la esquina de ${loc} el ${date} a las ${time}. Nuestro objetivo es protestar por calles más seguras y un gobierno más efectivo. ¡Únase a nosotros para exigir una ciudad que funcione!`,
+        whatHeader: "Qué esperar",
+        bullets: [
+          "Cierres de carril o desvíos temporales en la intersección",
+          "Voluntarios con chalecos de alta visibilidad dirigiendo el tráfico",
+          "Pintura húmeda — por favor no conduzca ni camine sobre el paso peatonal hasta que esté seco",
+        ],
+        durationLabel: "Duración estimada del trabajo:",
+        disclaimer: "No afiliado con LADOT ni la Oficina de Servicios de Calles (StreetsLA)",
+        organizedBy: "Organizado por",
+        orgName: "People’s Vision Zero",
+      },
+      zh: {
+        topBar:    "社区通知 &nbsp;&middot;&nbsp; 请阅读",
+        headline:  "道路临时封闭",
+        subhead:   "绘制人行横道，为更安全的街道而努力",
+        labelDate: "日期",
+        labelTime: "时间",
+        labelLoc:  "地点",
+        body:      (loc, date, time) => `我们将于 ${date} ${time} 在 ${loc} 路口绘制如上图所示的人行横道。我们的目标是抗议争取更安全的街道和更有效的政府。加入我们，共同要求一个运转良好的城市！`,
+        whatHeader: "注意事项",
+        bullets: [
+          "交叉路口将临时封闭车道或绕道",
+          "志愿者身穿反光背心指挥行人和车辆",
+          "油漆未干——请勿驾车或行走于人行横道上，直至油漆干燥",
+        ],
+        durationLabel: "预计施工时间：",
+        disclaimer: "与 LADOT 或街道服务局（StreetsLA）无关",
+        organizedBy: "主办方",
+        orgName: "People’s Vision Zero",
+      },
+    };
 
-      if (!date || !time || !location || !duration) {
+    function formatDate(dateStr, lang) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr + 'T12:00:00');
+      const locales = { en: 'en-US', es: 'es-MX', zh: 'zh-CN' };
+      return d.toLocaleDateString(locales[lang], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    function formatTime(t) {
+      if (!t) return '';
+      const [h, m] = t.split(':').map(Number);
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const h12 = h % 12 || 12;
+      return `${h12}:${m.toString().padStart(2,'0')} ${ampm}`;
+    }
+
+    async function generate(lang) {
+      const dateVal   = document.getElementById('date').value;
+      const startVal  = document.getElementById('start_time').value;
+      const endVal    = document.getElementById('end_time').value;
+      const street1   = document.getElementById('street1').value.trim();
+      const street2   = document.getElementById('street2').value.trim();
+
+      if (!dateVal || !startVal || !endVal || !street1 || !street2) {
         alert('Please fill in all fields.');
         return;
       }
 
+      const t = translations[lang];
+      const dateDisplay = formatDate(dateVal, lang);
+      const timeDisplay = `${formatTime(startVal)}–${formatTime(endVal)}`;
+      const location    = `${street1} & ${street2}`;
+      const duration    = timeDisplay;
+
       const res = await fetch('template.html');
       let html = await res.text();
-      html = html.replaceAll('{{ DATE }}', date);
-      html = html.replaceAll('{{ TIME }}', time);
+
+      // swap all text content
+      html = html.replace(/Neighborhood Notice.*?Please read/s, t.topBar);
+      html = html.replace(/TEMPORARY\s*<br>\s*ROAD CLOSURE|TEMPORARY\s*ROAD CLOSURE/i, t.headline);
+      html = html.replace(/Crosswalk painting for safer streets/, t.subhead);
+      html = html.replace(/<div class="detail-label">Date<\/div>/, `<div class="detail-label">${t.labelDate}</div>`);
+      html = html.replace(/<div class="detail-label">Time<\/div>/, `<div class="detail-label">${t.labelTime}</div>`);
+      html = html.replace(/<div class="detail-label">Location<\/div>/, `<div class="detail-label">${t.labelLoc}</div>`);
+      html = html.replace(/<h3>What to expect<\/h3>/, `<h3>${t.whatHeader}</h3>`);
+      html = html.replace(/Short-term lane closures.*?<\/li>/s, `${t.bullets[0]}</li>`);
+      html = html.replace(/Volunteers in hi-vis.*?<\/li>/s, `${t.bullets[1]}</li>`);
+      html = html.replace(/Wet paint.*?<\/li>/s, `${t.bullets[2]}</li>`);
+      html = html.replace(/Estimated work duration:/, t.durationLabel);
+      html = html.replace(/Not affiliated with LADOT.*?StreetsLA\)/, t.disclaimer);
+      html = html.replace(/Organized by/, t.organizedBy);
+      html = html.replace(/People&#8217;s Vision Zero/, t.orgName);
+      html = html.replace(/We will be painting crosswalks[\s\S]*?works!/, t.body(location, dateDisplay, timeDisplay));
+
+      // fill placeholders
+      html = html.replaceAll('{{ DATE }}', dateDisplay);
+      html = html.replaceAll('{{ TIME }}', timeDisplay);
       html = html.replaceAll('{{ LOCATION }}', location);
       html = html.replaceAll('{{ DURATION }}', duration);
+
+      // remove placeholder styling
+      html = html.replace(/ placeholder/g, '');
 
       const blob = new Blob([html], { type: 'text/html' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `flyer_${date.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.html`;
+      a.download = `flyer_${dateVal}_${lang}.html`;
       a.click();
     }
   </script>
