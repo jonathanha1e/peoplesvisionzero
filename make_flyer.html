@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Make a Flyer</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 500px; margin: 60px auto; padding: 0 20px; }
+    h1 { font-size: 24px; margin-bottom: 8px; }
+    p { color: #555; margin-bottom: 30px; }
+    label { display: block; font-weight: bold; margin-bottom: 6px; }
+    input { width: 100%; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; margin-bottom: 20px; }
+    button { background: #f5c800; font-size: 18px; font-weight: bold; border: none; padding: 14px 30px; border-radius: 8px; cursor: pointer; width: 100%; }
+    button:hover { background: #e0b500; }
+  </style>
+</head>
+<body>
+  <h1>People's Vision Zero</h1>
+  <p>Fill in the details for your next event and click the button to download the flyer.</p>
+
+  <label>Date</label>
+  <input id="date" type="text" placeholder="e.g. Saturday, July 12">
+
+  <label>Time</label>
+  <input id="time" type="text" placeholder="e.g. 10:00 AM">
+
+  <label>Location</label>
+  <input id="location" type="text" placeholder="e.g. 5th Ave & Main St">
+
+  <label>Estimated Duration</label>
+  <input id="duration" type="text" placeholder="e.g. 2 hours">
+
+  <button onclick="generate()">Download Flyer</button>
+
+  <script>
+    async function generate() {
+      const date     = document.getElementById('date').value;
+      const time     = document.getElementById('time').value;
+      const location = document.getElementById('location').value;
+      const duration = document.getElementById('duration').value;
+
+      if (!date || !time || !location || !duration) {
+        alert('Please fill in all fields.');
+        return;
+      }
+
+      const res = await fetch('template.html');
+      let html = await res.text();
+      html = html.replaceAll('{{ DATE }}', date);
+      html = html.replaceAll('{{ TIME }}', time);
+      html = html.replaceAll('{{ LOCATION }}', location);
+      html = html.replaceAll('{{ DURATION }}', duration);
+
+      const blob = new Blob([html], { type: 'text/html' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `flyer_${date.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.html`;
+      a.click();
+    }
+  </script>
+</body>
+</html>
