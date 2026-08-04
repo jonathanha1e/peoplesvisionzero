@@ -8,9 +8,9 @@
     h1 { font-size: 24px; margin-bottom: 8px; }
     p.sub { color: #555; margin-bottom: 30px; }
     label { display: block; font-weight: bold; margin-bottom: 6px; margin-top: 18px; }
-    input[type="date"], input[type="time"], input[type="text"] {
+    input[type="date"], select, input[type="text"] {
       width: 100%; padding: 10px; font-size: 16px; border: 1px solid #ccc;
-      border-radius: 6px; box-sizing: border-box;
+      border-radius: 6px; box-sizing: border-box; background: #fff;
     }
     .row { display: flex; gap: 12px; }
     .row > div { flex: 1; }
@@ -21,20 +21,29 @@
     }
     .btn-en, .btn-es, .btn-zh, .btn-ko { background: #f5c800; }
     button:hover { opacity: 0.88; }
+    button:disabled { opacity: 0.6; cursor: wait; }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 </head>
 <body>
   <h1>People's Vision Zero</h1>
-  <p class="sub">Fill in the event details, then print or save the flyer as a PDF in any language.</p>
+  <p class="sub">Fill in the event details, then download the flyer as a one-page PDF in any language.</p>
 
   <label>Date</label>
   <input type="date" id="date">
 
-  <label>Start Time</label>
-  <input type="time" id="start_time">
+  <label>Start Time (24-hour)</label>
+  <div class="row">
+    <div><select id="start_hour"></select></div>
+    <div><select id="start_minute"></select></div>
+  </div>
 
-  <label>End Time</label>
-  <input type="time" id="end_time">
+  <label>End Time (24-hour)</label>
+  <div class="row">
+    <div><select id="end_hour"></select></div>
+    <div><select id="end_minute"></select></div>
+  </div>
 
   <label>Cross Streets</label>
   <div class="row">
@@ -43,10 +52,10 @@
   </div>
 
   <div class="buttons">
-    <button class="btn-en" onclick="generate('en')">🖨 Print / Save as PDF — English</button>
-    <button class="btn-es" onclick="generate('es')">🖨 Imprimir / Guardar como PDF — Español</button>
-    <button class="btn-zh" onclick="generate('zh')">🖨 打印 / 保存为 PDF — 中文</button>
-    <button class="btn-ko" onclick="generate('ko')">🖨 인쇄 / PDF로 저장 — 한국어</button>
+    <button class="btn-en" onclick="generate('en', event)">⬇ Download PDF — English</button>
+    <button class="btn-es" onclick="generate('es', event)">⬇ Descargar PDF — Español</button>
+    <button class="btn-zh" onclick="generate('zh', event)">⬇ 下载 PDF — 中文</button>
+    <button class="btn-ko" onclick="generate('ko', event)">⬇ PDF 다운로드 — 한국어</button>
   </div>
 
   <script>
@@ -143,12 +152,29 @@ const TEMPLATE_HTML = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charse
       return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
     }
 
-    function generate(lang) {
-      const dateVal   = document.getElementById('date').value;
-      const startVal  = document.getElementById('start_time').value;
-      const endVal    = document.getElementById('end_time').value;
-      const street1   = document.getElementById('street1').value.trim();
-      const street2   = document.getElementById('street2').value.trim();
+    function populateTimeSelect(hourId, minuteId) {
+      const hourSel = document.getElementById(hourId);
+      hourSel.innerHTML = '<option value="">HH</option>' +
+        Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'))
+          .map(v => `<option value="${v}">${v}</option>`).join('');
+      const minuteSel = document.getElementById(minuteId);
+      minuteSel.innerHTML = '<option value="">MM</option>' +
+        ['00', '15', '30', '45'].map(v => `<option value="${v}">${v}</option>`).join('');
+    }
+    populateTimeSelect('start_hour', 'start_minute');
+    populateTimeSelect('end_hour', 'end_minute');
+
+    async function generate(lang, event) {
+      const dateVal    = document.getElementById('date').value;
+      const startHour  = document.getElementById('start_hour').value;
+      const startMin   = document.getElementById('start_minute').value;
+      const endHour    = document.getElementById('end_hour').value;
+      const endMin     = document.getElementById('end_minute').value;
+      const street1    = document.getElementById('street1').value.trim();
+      const street2    = document.getElementById('street2').value.trim();
+
+      const startVal = (startHour && startMin) ? `${startHour}:${startMin}` : '';
+      const endVal   = (endHour && endMin) ? `${endHour}:${endMin}` : '';
 
       if (!dateVal || !startVal || !endVal || !street1 || !street2) {
         alert('Please fill in all fields.');
@@ -165,7 +191,11 @@ const TEMPLATE_HTML = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charse
 
       // swap all text content
       html = html.replace(/Neighborhood Notice.*?Please read/s, t.topBar);
-      html = html.replace(/TEMPORARY\s*<br>\s*ROAD CLOSURE|TEMPORARY\s*ROAD CLOSURE/i, t.headline);
+      // the template markup is <span>Temporary</span><br><span>Road Closure</span> —
+      // rebuild that same span structure from the translated headline so it
+      // actually matches and swaps for every language, not just English.
+      const headlineHtml = t.headline.split('<br>').map(part => `<span>${part}</span>`).join('<br>');
+      html = html.replace(/<span>Temporary<\/span><br><span>Road Closure<\/span>/, headlineHtml);
       html = html.replace(/Crosswalk painting for safer streets/, t.subhead);
       html = html.replace(/<div class="detail-label">Date<\/div>/, `<div class="detail-label">${t.labelDate}</div>`);
       html = html.replace(/<div class="detail-label">Time<\/div>/, `<div class="detail-label">${t.labelTime}</div>`);
@@ -189,39 +219,62 @@ const TEMPLATE_HTML = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charse
       // remove placeholder styling
       html = html.replace(/ placeholder/g, '');
 
-      // force clean letter-size output with no browser margins when printed/saved as PDF
-      const printCss = '<style>@page{size:letter;margin:0;}@media print{html,body{margin:0;}}</style>';
-      html = html.replace('</head>', printCss + '</head>');
+      const btn = event && event.target;
+      const originalLabel = btn ? btn.textContent : null;
+      if (btn) { btn.disabled = true; btn.textContent = 'Generating PDF…'; }
 
-      const win = window.open('', '_blank');
-      if (!win) {
-        alert('Please allow pop-ups for this site, then try again.');
-        return;
-      }
-      win.document.open();
-      win.document.write(html);
-      win.document.close();
-      win.onload = () => {
-        // shrink to fit a single 11in page if the content ran long.
-        // uses `zoom` (not `transform: scale`) because transforms are paint-only
-        // and don't change the box size the print engine uses for page breaks.
-        // applied iteratively since zoom vs. rendered height isn't perfectly linear.
-        const flyerEl = win.document.querySelector('.flyer');
-        if (flyerEl) {
-          const pagePx = 11 * 96;
-          let zoom = 1;
-          let height = flyerEl.getBoundingClientRect().height;
-          let iterations = 0;
-          while (height > pagePx && iterations < 8) {
-            zoom *= (pagePx / height) * 0.98;
-            flyerEl.style.zoom = zoom;
-            height = flyerEl.getBoundingClientRect().height;
-            iterations++;
-          }
+      try {
+        // render the flyer off-screen in a hidden iframe (not a popup — no
+        // pop-up blocker, no dependency on the browser's own print engine)
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.left = '-99999px';
+        iframe.style.top = '0';
+        iframe.style.width = '816px';   // 8.5in @ 96dpi
+        iframe.style.height = '1056px'; // 11in @ 96dpi
+        iframe.style.border = '0';
+        document.body.appendChild(iframe);
+
+        await new Promise((resolve) => {
+          iframe.onload = resolve;
+          iframe.contentDocument.open();
+          iframe.contentDocument.write(html);
+          iframe.contentDocument.close();
+        });
+        if (iframe.contentDocument.fonts) {
+          await iframe.contentDocument.fonts.ready;
         }
-        win.focus();
-        win.print();
-      };
+        await new Promise(r => setTimeout(r, 150)); // let webfonts/layout settle
+
+        const flyerEl = iframe.contentDocument.querySelector('.flyer');
+        const canvas = await html2canvas(flyerEl, { scale: 2, backgroundColor: '#ffffff' });
+
+        // place the whole rendered flyer, however tall it is, onto exactly
+        // one letter-size PDF page (scaled to fit) — this can never overflow
+        // to a second page because we're building the PDF ourselves, not
+        // relying on a browser print engine's own pagination.
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ unit: 'in', format: 'letter' });
+        const pageW = 8.5, pageH = 11;
+        const imgRatio = canvas.width / canvas.height;
+        const pageRatio = pageW / pageH;
+        let renderW, renderH;
+        if (imgRatio > pageRatio) {
+          renderW = pageW;
+          renderH = pageW / imgRatio;
+        } else {
+          renderH = pageH;
+          renderW = pageH * imgRatio;
+        }
+        const offsetX = (pageW - renderW) / 2;
+        const offsetY = (pageH - renderH) / 2;
+        pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', offsetX, offsetY, renderW, renderH);
+        pdf.save(`flyer_${dateVal}_${lang}.pdf`);
+
+        document.body.removeChild(iframe);
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = originalLabel; }
+      }
     }
   </script>
 </body>
