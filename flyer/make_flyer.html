@@ -140,9 +140,7 @@ const TEMPLATE_HTML = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charse
     function formatTime(t) {
       if (!t) return '';
       const [h, m] = t.split(':').map(Number);
-      const ampm = h >= 12 ? 'PM' : 'AM';
-      const h12 = h % 12 || 12;
-      return `${h12}:${m.toString().padStart(2,'0')} ${ampm}`;
+      return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
     }
 
     function generate(lang) {
@@ -204,15 +202,21 @@ const TEMPLATE_HTML = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charse
       win.document.write(html);
       win.document.close();
       win.onload = () => {
-        // shrink to fit a single 11in page if the content ran long
+        // shrink to fit a single 11in page if the content ran long.
+        // uses `zoom` (not `transform: scale`) because transforms are paint-only
+        // and don't change the box size the print engine uses for page breaks.
+        // applied iteratively since zoom vs. rendered height isn't perfectly linear.
         const flyerEl = win.document.querySelector('.flyer');
         if (flyerEl) {
           const pagePx = 11 * 96;
-          const contentPx = flyerEl.scrollHeight;
-          if (contentPx > pagePx) {
-            const scale = (pagePx / contentPx) * 0.99; // small buffer against rounding
-            flyerEl.style.transform = `scale(${scale})`;
-            flyerEl.style.transformOrigin = 'top center';
+          let zoom = 1;
+          let height = flyerEl.getBoundingClientRect().height;
+          let iterations = 0;
+          while (height > pagePx && iterations < 8) {
+            zoom *= (pagePx / height) * 0.98;
+            flyerEl.style.zoom = zoom;
+            height = flyerEl.getBoundingClientRect().height;
+            iterations++;
           }
         }
         win.focus();
