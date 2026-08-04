@@ -25,7 +25,7 @@
 </head>
 <body>
   <h1>People's Vision Zero</h1>
-  <p class="sub">Fill in the event details, then download the flyer in any language.</p>
+  <p class="sub">Fill in the event details, then print or save the flyer as a PDF in any language.</p>
 
   <label>Date</label>
   <input type="date" id="date">
@@ -43,10 +43,10 @@
   </div>
 
   <div class="buttons">
-    <button class="btn-en" onclick="generate('en')">⬇ Download Flyer — English</button>
-    <button class="btn-es" onclick="generate('es')">⬇ Descargar volante — Español</button>
-    <button class="btn-zh" onclick="generate('zh')">⬇ 下载传单 — 中文</button>
-    <button class="btn-ko" onclick="generate('ko')">⬇ 전단지 다운로드 — 한국어</button>
+    <button class="btn-en" onclick="generate('en')">🖨 Print / Save as PDF — English</button>
+    <button class="btn-es" onclick="generate('es')">🖨 Imprimir / Guardar como PDF — Español</button>
+    <button class="btn-zh" onclick="generate('zh')">🖨 打印 / 保存为 PDF — 中文</button>
+    <button class="btn-ko" onclick="generate('ko')">🖨 인쇄 / PDF로 저장 — 한국어</button>
   </div>
 
   <script>
@@ -191,11 +191,22 @@ const TEMPLATE_HTML = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charse
       // remove placeholder styling
       html = html.replace(/ placeholder/g, '');
 
-      const blob = new Blob([html], { type: 'text/html' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `flyer_${dateVal}_${lang}.html`;
-      a.click();
+      // force clean letter-size output with no browser margins when printed/saved as PDF
+      const printCss = '<style>@page{size:letter;margin:0;}@media print{html,body{margin:0;}}</style>';
+      html = html.replace('</head>', printCss + '</head>');
+
+      const win = window.open('', '_blank');
+      if (!win) {
+        alert('Please allow pop-ups for this site, then try again.');
+        return;
+      }
+      win.document.open();
+      win.document.write(html);
+      win.document.close();
+      win.onload = () => {
+        win.focus();
+        win.print();
+      };
     }
   </script>
 </body>
