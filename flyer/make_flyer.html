@@ -204,6 +204,17 @@ const TEMPLATE_HTML = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charse
       win.document.write(html);
       win.document.close();
       win.onload = () => {
+        // shrink to fit a single 11in page if the content ran long
+        const flyerEl = win.document.querySelector('.flyer');
+        if (flyerEl) {
+          const pagePx = 11 * 96;
+          const contentPx = flyerEl.scrollHeight;
+          if (contentPx > pagePx) {
+            const scale = (pagePx / contentPx) * 0.99; // small buffer against rounding
+            flyerEl.style.transform = `scale(${scale})`;
+            flyerEl.style.transformOrigin = 'top center';
+          }
+        }
         win.focus();
         win.print();
       };
