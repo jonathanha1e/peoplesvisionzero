@@ -94,6 +94,7 @@
 <script>
 const FATAL_COLOR = "#c0122f";
 const INJURY_COLOR = "#e08a00";
+const PAINTED_COLOR = "#F5C800";
 
 const DISTRICT_COLORS = [
   "#e6194b","#3cb44b","#ffbe19","#4363d8","#f58231",
@@ -163,6 +164,7 @@ legend.onAdd = function () {
     <div class="row"><span class="dot" style="width:10px;height:10px;background:${FATAL_COLOR}"></span> Corner had a fatal collision</div>
     <div class="row"><span class="dot" style="width:10px;height:10px;background:${INJURY_COLOR}"></span> Injury only, no fatality</div>
     <div class="row"><span class="dot" style="width:8px;height:8px;background:#999;border-radius:50%"></span> larger dot = more incidents at that corner</div>
+    <div class="row"><span class="dot" style="width:10px;height:10px;background:${PAINTED_COLOR};border:1px solid #111"></span> Painted by People's Vision Zero</div>
   `;
   return div;
 };
@@ -194,7 +196,35 @@ fetch("districts.geojson")
   });
 
 districtLayer.addTo(map);
-L.control.layers(null, { "Council districts": districtLayer }, { position: "topright", collapsed: false }).addTo(map);
+
+const paintedLayer = L.layerGroup();
+fetch("painted.json")
+  .then(r => r.json())
+  .then(corners => {
+    for (const c of corners) {
+      const marker = L.circleMarker([c.lat, c.lng], {
+        radius: 8,
+        color: "#111",
+        weight: 1,
+        opacity: 1,
+        fillColor: PAINTED_COLOR,
+        fillOpacity: 0.95,
+      });
+      marker.bindPopup(
+        `<div class="popup-title">Painted by People's Vision Zero</div>` +
+        `<div class="popup-sub">${c.name}</div>`,
+        { maxWidth: 280 }
+      );
+      marker.addTo(paintedLayer);
+    }
+  })
+  .catch(err => console.error("Failed to load painted corners:", err));
+paintedLayer.addTo(map);
+
+L.control.layers(null, {
+  "Council districts": districtLayer,
+  "Painted by PVZ": paintedLayer,
+}, { position: "topright", collapsed: false }).addTo(map);
 
 fetch("data.json")
   .then(r => r.json())
