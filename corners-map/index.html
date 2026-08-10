@@ -198,12 +198,15 @@ fetch("districts.geojson")
 districtLayer.addTo(map);
 
 const paintedLayer = L.layerGroup();
+  map.createPane("paintedPane");
+  map.getPane("paintedPane").style.zIndex = 650;
 fetch("painted.json")
   .then(r => r.json())
   .then(corners => {
     for (const c of corners) {
       const marker = L.circleMarker([c.lat, c.lng], {
         radius: 8,
+                  pane: "paintedPane",
         color: "#111",
         weight: 1,
         opacity: 1,
