@@ -12,5 +12,6 @@
   {"name": "Nebraska Ave & S Westgate Ave", "lat": 34.0382719, "lng": -118.455633},
   {"name": "Stoner Ave & Nebraska Ave", "lat": 34.0394122, "lng": -118.4537571},
   {"name": "Stoner Ave & Missouri Ave", "lat": 34.037978, "lng": -118.4525257},
-  {"name": "Strathern St & Owensmouth Ave", "lat": 34.2155501, "lng": -118.6016386}
+  {"name": "Strathern St & Owensmouth Ave", "lat": 34.2155501, "lng": -118.6016386},
+  {"name": "W 70th St & Menlo Ave", "lat": 33.97637177, "lng": -118.2892532}
 ]
