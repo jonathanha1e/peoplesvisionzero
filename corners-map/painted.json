@@ -13,5 +13,6 @@
   {"name": "Stoner Ave & Nebraska Ave", "lat": 34.0394122, "lng": -118.4537571},
   {"name": "Stoner Ave & Missouri Ave", "lat": 34.037978, "lng": -118.4525257},
   {"name": "Strathern St & Owensmouth Ave", "lat": 34.2155501, "lng": -118.6016386},
-  {"name": "W 70th St & Menlo Ave", "lat": 33.97637177, "lng": -118.2892532}
+  {"name": "W 70th St & Menlo Ave", "lat": 33.97637177, "lng": -118.2892532},
+  {"name": "E 21st St & Naomi Ave", "lat": 34.0209897, "lng": -118.2498076}
 ]
