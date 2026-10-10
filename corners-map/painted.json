@@ -18,5 +18,6 @@
   {"name": "Lexington Ave & N Sycamore Ave", "lat": 34.0925795, "lng": -118.3428197},
   {"name": "30th St & Orchard Ave", "lat": 34.02745001, "lng": -118.28822},
   {"name": "60th St & 10th Ave", "lat": 33.985420, "lng": -118.328590},
-  {"name": "Percy St & Esperanza St", "lat": 34.026669, "lng": -118.195401}
+  {"name": "Percy St & Esperanza St", "lat": 34.026669, "lng": -118.195401},
+  {"name": "E 3rd St & S St Louis St", "lat": 34.04316, "lng": -118.21491}
 ]
